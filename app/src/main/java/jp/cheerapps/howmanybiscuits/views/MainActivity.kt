@@ -1,7 +1,8 @@
-package jp.cheerapps.howmanybiscuits
+package jp.cheerapps.howmanybiscuits.views
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import jp.cheerapps.howmanybiscuits.R
 import jp.cheerapps.howmanybiscuits.extensions.transaction
 import jp.cheerapps.howmanybiscuits.views.game.GameFragment
 
