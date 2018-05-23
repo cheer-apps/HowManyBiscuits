@@ -10,21 +10,19 @@ import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import jp.cheerapps.howmanybiscuits.data.Vector
+import jp.cheerapps.howmanybiscuits.utils.FpsManager
 import jp.cheerapps.howmanybiscuits.views.custom.component.Biscuit
 import java.util.*
-import kotlin.math.max
 import kotlin.math.min
 import kotlin.system.measureTimeMillis
 
 class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, attrs), SurfaceHolder.Callback2 {
 
     private var thread: Thread? = null
+    private val fpsManager = FpsManager(targetFps = 60.0)
     private val random = Random()
     private var biscuits = mutableListOf<Biscuit>()
     private lateinit var size: Vector
-    private var frames = 0
-    private var times = IntArray(FPS_MEASURE_MAX_FRAMES)
-    private var fps = 0f
 
     init {
         holder.addCallback(this)
@@ -52,14 +50,10 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
             while (thread != null) {
                 val drawTime = measureTimeMillis { draw(holder) }
                 val updateTime = measureTimeMillis { update() }
-                if (frames >= FPS_MEASURE_MAX_FRAMES) {
-                    fps = 1000 / max(MAX_SLEEP_TIMES.toDouble(), times.average()).toFloat()
-                    frames = 0
-                }
-                times[frames++] = (drawTime + updateTime).toInt()
 //                Log.d(TAG, "drawTime = $drawTime, updateTime = $updateTime")
+                fpsManager.setProcessingTime(drawTime + updateTime)
                 try {
-                    Thread.sleep(max(0L, MAX_SLEEP_TIMES - (drawTime + updateTime)))
+                    Thread.sleep(fpsManager.sleepTime)
                 }
                 catch (e: InterruptedException) {
                     break
@@ -96,7 +90,7 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
         paint.textSize = 40f
         paint.color = Color.WHITE
         canvas.drawText("count = ${biscuits.size}", 0f, 40f, paint)
-        canvas.drawText("fps = %.2f".format(fps), 0f, 80f, paint)
+        canvas.drawText("fps = %.2f".format(fpsManager.fps), 0f, 80f, paint)
 
         holder.unlockCanvasAndPost(canvas)
     }
@@ -122,7 +116,5 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
 
     companion object {
         private val TAG = GameView::class.java.simpleName
-        private const val MAX_SLEEP_TIMES = 20L
-        private const val FPS_MEASURE_MAX_FRAMES = 10
     }
 }
