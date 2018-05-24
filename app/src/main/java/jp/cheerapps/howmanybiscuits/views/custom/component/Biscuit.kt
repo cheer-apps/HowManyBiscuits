@@ -1,6 +1,5 @@
 package jp.cheerapps.howmanybiscuits.views.custom.component
 
-import android.graphics.Rect
 import jp.cheerapps.howmanybiscuits.data.Vector
 import java.util.*
 import kotlin.math.abs
@@ -13,8 +12,10 @@ class Biscuit (
     var r: Float,
     private val random: Random
 ) {
-    data class Data(val drawRect: Rect)
+    data class Data(val center: Vector, val size: Int, val angle: Float)
     private val divisionCount: Int
+    private var angle = random.nextInt(360).toFloat()
+    private val dAngle = v.length2() / 15 * (if (random.nextBoolean()) 1 else -1)
 
     init {
         val prob = random.nextFloat()
@@ -22,12 +23,12 @@ class Biscuit (
     }
 
     fun generateData(): Data {
-        val drawRect = Rect((p.x - r).toInt(), (p.y - r).toInt(), (p.x + r).toInt(), (p.y + r).toInt())
-        return Data(drawRect)
+        return Data(p, (2 * r).toInt(), angle)
     }
 
     fun move() {
         p += v
+        angle = (angle + dAngle) % 360
     }
 
     fun restitutionBiscuit(biscuits: List<Biscuit>) {
@@ -50,7 +51,7 @@ class Biscuit (
             else (0 until divisionCount)
                 .map {
                     Biscuit(p = Vector(p.x + rand(r / 2, r, true), p.y + + rand(r / 2, r, true)),
-                            v = Vector(rand(5f, 5f, true), rand(5f, 5f, true)),
+                            v = Vector(rand(3f, 5f, true), rand(3f, 5f, true)),
                             r = r / sqrt(divisionCount.toFloat()),
                             random = random)
                 }

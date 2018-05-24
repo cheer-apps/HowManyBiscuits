@@ -9,6 +9,7 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import jp.cheerapps.howmanybiscuits.R
 import jp.cheerapps.howmanybiscuits.data.Vector
+import jp.cheerapps.howmanybiscuits.extensions.saveRestore
 import jp.cheerapps.howmanybiscuits.utils.FpsManager
 import jp.cheerapps.howmanybiscuits.views.custom.component.Biscuit
 import java.util.*
@@ -64,7 +65,7 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
             while (drawThread != null) {
                 val drawTime = measureTimeMillis { draw(holder) }
                 threadTime = max(threadTime, drawTime)
-                Log.d(TAG, "drawTime = $drawTime")
+//                Log.d(TAG, "drawTime = $drawTime")
                 barrier.await()
             }
         }
@@ -72,7 +73,7 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
             while (updateThread != null) {
                 val updateTime = measureTimeMillis { update() }
                 threadTime = max(threadTime, updateTime)
-                Log.d(TAG, "updateTime = $updateTime")
+//                Log.d(TAG, "updateTime = $updateTime")
                 barrier.await()
             }
         }
@@ -101,7 +102,14 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
 
         val paint = Paint()
         val bitmapRect = Rect(0, 0, bitmap.width, bitmap.height)
-        dataList.forEach { canvas.drawBitmap(bitmap, bitmapRect, it.drawRect, paint) }
+        dataList.forEach {
+            canvas.saveRestore {
+                translate(it.center.x, it.center.y )
+                rotate(it.angle)
+                translate(-it.size / 2f, -it.size / 2f)
+                drawBitmap(bitmap, bitmapRect, Rect(0, 0, it.size, it.size), paint)
+            }
+        }
 
         paint.textSize = 40f
         paint.color = Color.WHITE
@@ -122,14 +130,12 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
     }
 
     private fun barrierAction() {
-        val dataTime = measureTimeMillis {
-            synchronized(biscuits) {
-                dataList = biscuits.map { it.generateData() }
-            }
+        synchronized(biscuits) {
+            dataList = biscuits.map { it.generateData() }
         }
-        Log.d(TAG, "threadTime = $threadTime, dataTime = $dataTime")
+        Log.d(TAG, "threadTime = $threadTime")
 
-        fpsManager.setProcessingTime(threadTime + dataTime)
+        fpsManager.setProcessingTime(threadTime)
         try { Thread.sleep(fpsManager.sleepTime) }
         catch (e: InterruptedException) {}
         threadTime = 0L
