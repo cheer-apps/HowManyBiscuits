@@ -1,8 +1,6 @@
 package jp.cheerapps.howmanybiscuits.views.custom.component
 
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.Rect
 import jp.cheerapps.howmanybiscuits.data.Vector
 import java.util.*
 import kotlin.math.abs
@@ -16,17 +14,13 @@ class Biscuit (
     private val random: Random
 ) {
     private var divisionCount = 1
-    private val biscuitColor = random.nextInt() or 0xFF000000.toInt()
 
     init {
         val rf = random.nextFloat()
         divisionCount = countDist.first { (p, _) -> rf <= p }.second
     }
 
-    fun draw(canvas: Canvas) {
-        val paint = Paint().apply { color = biscuitColor }
-        canvas.drawCircle(p.x, p.y, r, paint)
-    }
+    fun calcDrawRect() = Rect((p.x - r).toInt(), (p.y - r).toInt(), (p.x + r).toInt(), (p.y + r).toInt())
 
     fun move() {
         p += v

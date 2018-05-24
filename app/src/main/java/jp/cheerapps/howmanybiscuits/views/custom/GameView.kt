@@ -1,14 +1,13 @@
 package jp.cheerapps.howmanybiscuits.views.custom
 
 import android.content.Context
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.PorterDuff
+import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import jp.cheerapps.howmanybiscuits.R
 import jp.cheerapps.howmanybiscuits.data.Vector
 import jp.cheerapps.howmanybiscuits.utils.FpsManager
 import jp.cheerapps.howmanybiscuits.views.custom.component.Biscuit
@@ -22,10 +21,15 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
     private val fpsManager = FpsManager(targetFps = 60.0)
     private val random = Random()
     private var biscuits = mutableListOf<Biscuit>()
+    private val bitmap: Bitmap
     private lateinit var size: Vector
 
     init {
         holder.addCallback(this)
+        bitmap = BitmapFactory.decodeResource(
+                resources,
+                R.drawable.coin100_min,
+                BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_4444 })
     }
 
     override fun surfaceRedrawNeeded(holder: SurfaceHolder?) {}
@@ -50,7 +54,7 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
             while (thread != null) {
                 val drawTime = measureTimeMillis { draw(holder) }
                 val updateTime = measureTimeMillis { update() }
-//                Log.d(TAG, "drawTime = $drawTime, updateTime = $updateTime")
+                Log.d(TAG, "drawTime = $drawTime, updateTime = $updateTime")
                 fpsManager.setProcessingTime(drawTime + updateTime)
                 try {
                     Thread.sleep(fpsManager.sleepTime)
@@ -83,10 +87,10 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
         val canvas = holder.lockCanvas() ?: return
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
 
-        synchronized(biscuits) {
-            biscuits.forEach { it.draw(canvas) }
-        }
         val paint = Paint()
+        synchronized(biscuits) {
+            biscuits.forEach { canvas.drawBitmap(bitmap, Rect(0, 0, bitmap.width, bitmap.height), it.calcDrawRect(), paint) }
+        }
         paint.textSize = 40f
         paint.color = Color.WHITE
         canvas.drawText("count = ${biscuits.size}", 0f, 40f, paint)
@@ -110,7 +114,7 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
                     it.restitutionWall(size)
                 }
             }
-            Log.d(TAG, "biscuitTime = $biscuitTime, wallTime = $wallTime")
+//            Log.d(TAG, "biscuitTime = $biscuitTime, wallTime = $wallTime")
         }
     }
 
