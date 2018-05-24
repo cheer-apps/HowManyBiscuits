@@ -13,11 +13,11 @@ class Biscuit (
     var r: Float,
     private val random: Random
 ) {
-    private var divisionCount = 1
+    private val divisionCount: Int
 
     init {
-        val rf = random.nextFloat()
-        divisionCount = countDist.first { (p, _) -> rf <= p }.second
+        val prob = random.nextFloat()
+        divisionCount = countDist.first { (p, _) -> prob <= p }.second
     }
 
     fun calcDrawRect() = Rect((p.x - r).toInt(), (p.y - r).toInt(), (p.x + r).toInt(), (p.y + r).toInt())
@@ -27,11 +27,9 @@ class Biscuit (
     }
 
     fun restitutionBiscuit(biscuits: List<Biscuit>) {
-        biscuits.forEach {
-            if (it != this && collides(it)) {
-                v = restitute(it)
-            }
-        }
+        biscuits.dropWhile { it != this }
+                .drop(1)
+                .forEach { if (collides(it)) restitute(it) }
     }
 
     fun restitutionWall(size: Vector) {
@@ -57,12 +55,13 @@ class Biscuit (
 
     private fun collides(biscuit: Biscuit) = (biscuit.p - p).length2() <= (biscuit.r + r) * (biscuit.r + r)
 
-    private fun restitute(biscuit: Biscuit): Vector {
+    private fun restitute(biscuit: Biscuit) {
         val pv = (biscuit.p - p)
-        if (pv dot v < 0) return v
+        if (pv dot v <= 0 && pv dot biscuit.v >= 0) return
 
         val pu = pv.unit()
-        return v - pu * (2 * (pu dot v))
+        if (pv dot v  > 0) v -= pu * (2 * (pu dot v))
+        if (pv dot biscuit.v < 0) biscuit.v -= pu * (2 * (pu dot biscuit.v))
     }
 
     private fun rand(min: Float, max: Float, minus: Boolean = true): Float {
