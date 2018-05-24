@@ -35,7 +35,7 @@ class GameView(context: Context, attrs: AttributeSet) : SurfaceView(context, att
         holder.addCallback(this)
         bitmap = BitmapFactory.decodeResource(
                 resources,
-                R.drawable.coin100_min,
+                R.drawable.coin100,
                 BitmapFactory.Options().apply { inPreferredConfig = Bitmap.Config.ARGB_4444 })
         dataList
     }
