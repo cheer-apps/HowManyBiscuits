@@ -13,6 +13,7 @@ class Biscuit (
     var r: Float,
     private val random: Random
 ) {
+    data class Data(val drawRect: Rect)
     private val divisionCount: Int
 
     init {
@@ -20,7 +21,10 @@ class Biscuit (
         divisionCount = countDist.first { (p, _) -> prob <= p }.second
     }
 
-    fun calcDrawRect() = Rect((p.x - r).toInt(), (p.y - r).toInt(), (p.x + r).toInt(), (p.y + r).toInt())
+    fun generateData(): Data {
+        val drawRect = Rect((p.x - r).toInt(), (p.y - r).toInt(), (p.x + r).toInt(), (p.y + r).toInt())
+        return Data(drawRect)
+    }
 
     fun move() {
         p += v
